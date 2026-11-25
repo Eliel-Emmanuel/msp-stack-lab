@@ -9,7 +9,9 @@ services:
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
       - donnees-caddy:/data
       - config-caddy:/config
-    networks: [frontal]
+    networks: 
+        frontal:
+          aliases: [rmm.horizon.lan]
     cap_drop: [ALL]
     cap_add: [NET_BIND_SERVICE]
     security_opt: [no-new-privileges:true]
@@ -21,6 +23,28 @@ services:
       resources:
         limits:
           memory: 64M
+  
+  meshcentral:
+    image: ghcr.io/ylianst/meshcentral:${MESHCENTRAL_VERSION}
+    restart: unless-stopped
+    depends_on:
+      caddy:
+        condition: service_healthy
+    volumes:
+      - donnees-meshcentral:/opt/meshcentral/meshcentral-data
+      - fichiers-meshcentral:/opt/meshcentral/meshcentral-files
+      - ./meshcentral/config.json:/opt/meshcentral/meshcentral-data/config.json:ro
+    networks: [frontal]
+    security_opt: [no-new-privileges:true]
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4430/health.ashx"]
+      interval: 15s
+      retries: 10
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 384M
 
   mariadb:
     image: mariadb:${MARIADB_VERSION}
@@ -76,3 +100,5 @@ volumes:
   config-caddy: {}
   donnees-mariadb: {}
   donnees-mailpit: {}
+  donnees-meshcentral: {}
+  fichiers-meshcentral: {}

@@ -1,0 +1,20 @@
+{
+  "settings": {
+    "cert": "rmm.horizon.lan",
+    "port": 4430,
+    "aliasPort": 443,
+    "tlsOffload": true,
+    "WANonly": true,
+    "selfUpdate": false
+  },
+  "domains": {
+    "": {
+      "title": "Horizon IT Services",
+      "title2": "RMM",
+      "newAccounts": false,
+      "certUrl": "https://rmm.horizon.lan:443/",
+      "passwordRequirements": { "min": 12, "force2factor": true },
+      "sessionRecording": { "onlySelectedDeviceGroups": false }
+    }
+  }
+}
