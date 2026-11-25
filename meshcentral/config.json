@@ -20,5 +20,11 @@
         "maxRecordingSizeMegabytes": 1024
       }
     }
+  },
+  "smtp": {
+    "host": "mailpit",
+    "port": 1025,
+    "from": "rmm@horizon.lan",
+    "tls": false
   }
 }
