@@ -14,7 +14,11 @@
       "newAccounts": false,
       "certUrl": "https://rmm.horizon.lan:443/",
       "passwordRequirements": { "min": 12, "force2factor": true },
-      "sessionRecording": { "onlySelectedDeviceGroups": false }
+      "sessionRecording": {
+        "onlySelectedDeviceGroups": false,
+        "maxRecordingDays": 30,
+        "maxRecordingSizeMegabytes": 1024
+      }
     }
   }
 }

@@ -33,6 +33,7 @@ services:
     volumes:
       - donnees-meshcentral:/opt/meshcentral/meshcentral-data
       - fichiers-meshcentral:/opt/meshcentral/meshcentral-files
+      - enregistrements-meshcentral:/opt/meshcentral/meshcentral-recordings
       - ./meshcentral/config.json:/opt/meshcentral/meshcentral-data/config.json:ro
     networks: [frontal]
     security_opt: [no-new-privileges:true]
@@ -101,4 +102,5 @@ volumes:
   donnees-mariadb: {}
   donnees-mailpit: {}
   donnees-meshcentral: {}
+  enregistrements-meshcentral: {}
   fichiers-meshcentral: {}
