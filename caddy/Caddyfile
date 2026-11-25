@@ -1,0 +1,8 @@
+{
+	local_certs
+}
+
+rmm.horizon.lan, support.horizon.lan, wiki.horizon.lan, coffre.horizon.lan {
+	tls internal
+	respond "Horizon IT Services - {host} : service bientôt disponible" 200
+}
