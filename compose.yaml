@@ -66,14 +66,16 @@ services:
       PHP_OPCACHE_MEMORY_CONSUMPTION: 64
     volumes:
       - pieces-jointes-osticket:/var/www/attachments
+      - ./osticket/healthcheck.php:/usr/local/bin/healthcheck.php:ro
     networks: [frontal, donnees]
     security_opt: [no-new-privileges:true]
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/"]
+      # Test sur 127.0.0.1 sans suivre la redirection HTTPS (voir osticket/healthcheck.php)
+      test: ["CMD", "php", "/usr/local/bin/healthcheck.php"]
       interval: 30s
       timeout: 5s
       retries: 3
-      start_period: 30s
+      start_period: 90s
     deploy:
       resources:
         limits:
@@ -124,7 +126,10 @@ services:
           memory: 64M
 
 networks:
-  frontal: {}
+  frontal:
+    ipam:
+      config:
+        - subnet: 172.30.10.0/24
   donnees:
     internal: true
 
