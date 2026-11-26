@@ -7,7 +7,12 @@ rmm.horizon.lan {
 	reverse_proxy meshcentral:4430
 }
 
-support.horizon.lan, wiki.horizon.lan, coffre.horizon.lan {
+support.horizon.lan {
+	tls internal
+	reverse_proxy osticket:80
+}
+
+wiki.horizon.lan, coffre.horizon.lan {
 	tls internal
 	respond "Horizon IT Services - {host} : service bientôt disponible" 200
 }

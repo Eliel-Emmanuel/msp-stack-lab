@@ -26,3 +26,7 @@ clean: ## Arrête ET supprime les données
 ca: ## Exporte le certificat racine de Caddy
 	$(COMPOSE) cp caddy:/data/caddy/pki/authorities/local/root.crt ./caddy-root.crt
 	@echo "Certificat exporté : caddy-root.crt"
+	
+reload: ## Valide puis recharge la configuration de Caddy sans couper le service
+	docker run --rm -v "$(PWD)/caddy/Caddyfile:/etc/caddy/Caddyfile:ro" caddy:$$(grep ^CADDY_VERSION .env | cut -d= -f2) caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+	docker compose exec caddy caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile

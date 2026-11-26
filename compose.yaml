@@ -47,6 +47,38 @@ services:
         limits:
           memory: 384M
 
+  osticket:
+    image: rinkp/osticket-dockerized:${OSTICKET_VERSION}
+    restart: unless-stopped
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    environment:
+      OST_SECRET_SALT: ${OSTICKET_SECRET_SALT}
+      OST_ADMIN_EMAIL: ${OSTICKET_ADMIN_EMAIL}
+      OST_ADMIN_PASSWD: ${OSTICKET_ADMIN_PASSWORD}
+      OST_DBHOST: mariadb:3306
+      OST_DBNAME: osticket
+      OST_DBUSER: osticket
+      OST_DBPASS: ${OSTICKET_DB_PASSWORD}
+      OST_HELPDESK_URL: https://support.horizon.lan/
+      OST_TRUSTED_PROXIES: 172.16.0.0/12
+      PHP_OPCACHE_MEMORY_CONSUMPTION: 64
+    volumes:
+      - pieces-jointes-osticket:/var/www/attachments
+    networks: [frontal, donnees]
+    security_opt: [no-new-privileges:true]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
   mariadb:
     image: mariadb:${MARIADB_VERSION}
     restart: unless-stopped
@@ -104,3 +136,4 @@ volumes:
   donnees-meshcentral: {}
   enregistrements-meshcentral: {}
   fichiers-meshcentral: {}
+  pieces-jointes-osticket: {}
