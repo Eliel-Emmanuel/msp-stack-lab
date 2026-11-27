@@ -12,7 +12,12 @@ support.horizon.lan {
 	reverse_proxy osticket:80
 }
 
-wiki.horizon.lan, coffre.horizon.lan {
+wiki.horizon.lan {
+	tls internal
+	reverse_proxy bookstack:80
+}
+
+coffre.horizon.lan {
 	tls internal
 	respond "Horizon IT Services - {host} : service bientôt disponible" 200
 }

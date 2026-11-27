@@ -119,6 +119,38 @@ services:
         limits:
           memory: 192M
 
+  bookstack:
+    image: lscr.io/linuxserver/bookstack:${BOOKSTACK_VERSION}
+    restart: unless-stopped
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: Europe/Paris
+      APP_URL: https://wiki.horizon.lan
+      APP_KEY: ${BOOKSTACK_APP_KEY}
+      DB_HOST: mariadb
+      DB_PORT: 3306
+      DB_USERNAME: bookstack
+      DB_PASSWORD: ${BOOKSTACK_DB_PASSWORD}
+      DB_DATABASE: bookstack
+    volumes:
+      - config-bookstack:/config
+    networks: [frontal, donnees]
+    security_opt: [no-new-privileges:true]
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://127.0.0.1/status"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 90s
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
   mariadb:
     image: mariadb:${MARIADB_VERSION}
     restart: unless-stopped
@@ -181,3 +213,4 @@ volumes:
   fichiers-meshcentral: {}
   pieces-jointes-osticket: {}
   etat-pont: {}
+  config-bookstack: {}
