@@ -81,6 +81,44 @@ services:
         limits:
           memory: 256M
 
+  pont-alertes:
+    build:
+      context: ./pont-alertes
+      args:
+        MESHCENTRAL_VERSION: ${MESHCENTRAL_VERSION}
+    image: msp/pont-alertes:local
+    restart: unless-stopped
+    depends_on:
+      meshcentral:
+        condition: service_healthy
+      osticket:
+        condition: service_healthy
+    environment:
+      MESHCENTRAL_TOKEN_USER: ${MESHCENTRAL_TOKEN_USER}
+      MESHCENTRAL_TOKEN_PASSWORD: ${MESHCENTRAL_TOKEN_PASSWORD}
+      OSTICKET_API_KEY: ${OSTICKET_API_KEY}
+      OSTICKET_TOPIC_ID: ${OSTICKET_TOPIC_ID}
+      PONT_INTERVALLE_SECONDES: ${PONT_INTERVALLE_SECONDES:-300}
+    volumes:
+      - etat-pont:/data
+    networks:
+      frontal:
+        ipv4_address: 172.30.10.50
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    healthcheck:
+      test: ["CMD", "python3", "-m", "pont.sante"]
+      interval: 60s
+      timeout: 5s
+      retries: 3
+      start_period: 120s
+    deploy:
+      resources:
+        limits:
+          memory: 192M
+
   mariadb:
     image: mariadb:${MARIADB_VERSION}
     restart: unless-stopped
@@ -142,3 +180,4 @@ volumes:
   enregistrements-meshcentral: {}
   fichiers-meshcentral: {}
   pieces-jointes-osticket: {}
+  etat-pont: {}

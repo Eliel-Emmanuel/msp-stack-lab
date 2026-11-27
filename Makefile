@@ -30,3 +30,9 @@ ca: ## Exporte le certificat racine de Caddy
 reload: ## Valide puis recharge la configuration de Caddy sans couper le service
 	docker run --rm -v "$(PWD)/caddy/Caddyfile:/etc/caddy/Caddyfile:ro" caddy:$$(grep ^CADDY_VERSION .env | cut -d= -f2) caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
 	docker compose exec caddy caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile
+
+test-pont: ## Lance les tests du pont d'alertes
+	docker run --rm -v "$(PWD)/pont-alertes:/app" -w /app python:3.13-alpine sh -c 'pip install -q pytest && python -m pytest -q'
+
+logs-pont: ## Suit les journaux du pont d'alertes
+	docker compose logs -f pont-alertes
