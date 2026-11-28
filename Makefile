@@ -36,3 +36,9 @@ test-pont: ## Lance les tests du pont d'alertes
 
 logs-pont: ## Suit les journaux du pont d'alertes
 	docker compose logs -f pont-alertes
+
+sauvegarde: ## Sauvegarde complète (MariaDB + volumes), copie sur D:
+	COPIE_EXTERNE=/mnt/d/Sauvegardes-msp ./scripts/sauvegarde.sh
+
+restauration: ## Restaure une sauvegarde : make restauration DOSSIER=sauvegardes/AAAA-MM-JJ_HHMMSS
+	./scripts/restauration.sh $(DOSSIER)
