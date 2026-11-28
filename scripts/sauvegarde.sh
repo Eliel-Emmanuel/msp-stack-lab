@@ -90,6 +90,9 @@ done
 
 if [ -n "$COPIE_EXTERNE" ]; then
   mkdir -p "$COPIE_EXTERNE"
+  if [ "$(stat -c %d "$COPIE_EXTERNE")" = "$(stat -c %d "$RACINE_SAUVEGARDES")" ]; then
+    echec "COPIE_EXTERNE ($COPIE_EXTERNE) est sur le même système de fichiers que les sauvegardes : ce n'est pas une copie externe (disque Windows non monté ?)"
+  fi
   cp -r "$dest" "$COPIE_EXTERNE/"
   ( cd "$COPIE_EXTERNE/$horodatage" && sha256sum --quiet -c SHA256SUMS ) \
     || echec "copie externe corrompue"
