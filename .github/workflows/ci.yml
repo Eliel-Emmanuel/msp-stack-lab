@@ -1,0 +1,120 @@
+# Intégration continue de msp-stack-lab
+# Toutes les actions sont épinglées par l'empreinte SHA de leur commit (et non par
+# un tag, qui peut être réécrit) : voir l'attaque de la chaîne Trivy de mars 2026.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "17 5 * * 1"   # chaque lundi : nouvelles vulnérabilités publiées sur les images
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests-pont:
+    name: Tests du pont d'alertes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.13"
+      - name: pytest
+        working-directory: pont-alertes
+        run: |
+          python -m pip install --quiet pytest
+          python -m pytest -q
+
+  scripts:
+    name: Analyse des scripts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: shellcheck (Bash)
+        run: shellcheck scripts/*.sh scripts/linux/*.sh mariadb/init/*.sh
+      - name: PSScriptAnalyzer (PowerShell)
+        shell: pwsh
+        run: |
+          if (-not (Get-Module -ListAvailable PSScriptAnalyzer)) {
+            Install-Module PSScriptAnalyzer -Force -Scope CurrentUser
+          }
+          $resultats = Invoke-ScriptAnalyzer -Path scripts/windows -Recurse -Severity Error,Warning
+          $resultats | Format-Table -AutoSize
+          if ($resultats) { exit 1 }
+
+  configuration:
+    name: Validation Compose et Caddy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Fichier .env de test (valeurs fictives)
+        run: cp .env.example .env
+      - name: docker compose config
+        run: docker compose config --quiet
+      - name: caddy validate
+        run: |
+          version=$(grep '^CADDY_VERSION=' .env | cut -d= -f2)
+          docker run --rm -v "$PWD/caddy/Caddyfile:/etc/caddy/Caddyfile:ro" \
+            "caddy:$version" caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+
+  secrets:
+    name: Recherche de secrets (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0   # tout l'historique, pas seulement le dernier commit
+      - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  liste-images:
+    name: Liste des images
+    runs-on: ubuntu-latest
+    outputs:
+      images: ${{ steps.liste.outputs.images }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - id: liste
+        run: |
+          cp .env.example .env
+          echo "images=$(docker compose config --images | grep -v '^msp/' | sort -u | jq -R . | jq -cs .)" >> "$GITHUB_OUTPUT"
+
+  trivy-images:
+    name: Trivy - ${{ matrix.image }}
+    needs: liste-images
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ${{ fromJSON(needs.liste-images.outputs.images) }}
+    steps:
+      # Images tierces : rapport sans bloquer (on ne corrige pas leur code nous-mêmes,
+      # on surveille et on met à jour la version épinglée quand un correctif sort).
+      - uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ${{ matrix.image }}
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: "0"
+
+  trivy-pont:
+    name: Trivy - image du pont (bloquant)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Construction de l'image
+        run: |
+          version=$(grep '^MESHCENTRAL_VERSION=' .env.example | cut -d= -f2)
+          docker build --build-arg "MESHCENTRAL_VERSION=$version" -t msp/pont-alertes:ci pont-alertes
+      # Notre image : une vulnérabilité critique corrigeable fait échouer la CI.
+      - uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: msp/pont-alertes:ci
+          severity: CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
