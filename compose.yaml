@@ -151,6 +151,29 @@ services:
         limits:
           memory: 256M
 
+  vaultwarden:
+    image: vaultwarden/server:${VAULTWARDEN_VERSION}
+    restart: unless-stopped
+    environment:
+      DOMAIN: https://coffre.horizon.lan
+      SIGNUPS_ALLOWED: "false"
+      INVITATIONS_ALLOWED: "true"
+      ADMIN_TOKEN: ${VAULTWARDEN_ADMIN_TOKEN}
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      SMTP_SECURITY: "off"
+      SMTP_FROM: coffre@horizon.lan
+      SMTP_FROM_NAME: Horizon IT Services - Coffre
+      TZ: Europe/Paris
+    volumes:
+      - donnees-vaultwarden:/data
+    networks: [frontal]
+    security_opt: [no-new-privileges:true]
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+
   mariadb:
     image: mariadb:${MARIADB_VERSION}
     restart: unless-stopped
@@ -214,3 +237,4 @@ volumes:
   pieces-jointes-osticket: {}
   etat-pont: {}
   config-bookstack: {}
+  donnees-vaultwarden: {}

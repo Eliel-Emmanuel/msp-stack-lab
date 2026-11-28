@@ -19,5 +19,5 @@ wiki.horizon.lan {
 
 coffre.horizon.lan {
 	tls internal
-	respond "Horizon IT Services - {host} : service bientôt disponible" 200
+	reverse_proxy vaultwarden:80
 }
