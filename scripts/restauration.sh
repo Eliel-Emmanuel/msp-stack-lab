@@ -71,6 +71,6 @@ log "5/5 Restauration de MariaDB puis démarrage complet"
 docker compose up -d --wait mariadb >/dev/null
 gzip -dc "$dossier_abs/mariadb.sql.gz" \
   | docker compose exec -T mariadb sh -c 'exec mariadb -uroot -p"$MARIADB_ROOT_PASSWORD"'
-docker compose up -d --build --wait
+docker compose up -d --wait
 
 log "Restauration terminée. Vérifier : make ps, connexions MeshCentral / osTicket / BookStack / Vaultwarden, agents reconnectés."
