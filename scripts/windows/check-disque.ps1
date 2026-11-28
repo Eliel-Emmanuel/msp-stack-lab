@@ -1,4 +1,4 @@
-# Vérifie l'espace libre des disques locaux. Alerte sous le seuil (EF : < 15 %).
+﻿# Vérifie l'espace libre des disques locaux. Alerte sous le seuil (EF : < 15 %).
 param([int]$SeuilPourcent = 15)
 
 $resultats = Get-CimInstance Win32_LogicalDisk -Filter "DriveType=3" | ForEach-Object {

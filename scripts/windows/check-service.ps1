@@ -1,4 +1,4 @@
-# Vérifie qu'un service Windows tourne (par défaut : Spooler).
+﻿# Vérifie qu'un service Windows tourne (par défaut : Spooler).
 param([string]$Nom = 'Spooler')
 
 $service = Get-Service -Name $Nom -ErrorAction SilentlyContinue

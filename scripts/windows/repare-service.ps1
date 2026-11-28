@@ -1,4 +1,4 @@
-# Remédiation : redémarre un service arrêté puis vérifie son état.
+﻿# Remédiation : redémarre un service arrêté puis vérifie son état.
 param([string]$Nom = 'Spooler')
 
 try {
